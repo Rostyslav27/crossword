@@ -29,6 +29,7 @@
     display: grid;
     grid-template-columns: repeat(11, 1fr);
     grid-gap: 3px;
+    touch-action: manipulation;
 
     &__key {
       display: flex;
@@ -40,6 +41,7 @@
       font-size: 1em;
       background-color: #6a7077;
       color: #fff;
+      touch-action: manipulation;
 
       &:active {
         background-color: #50555a;

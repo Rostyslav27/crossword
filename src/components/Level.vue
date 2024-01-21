@@ -374,6 +374,7 @@
     flex-direction: column;
     height: 100%;
     max-height: 100svh;
+    touch-action: manipulation;
 
     &__header {
       background-color: #000;

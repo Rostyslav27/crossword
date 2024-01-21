@@ -329,6 +329,10 @@
     }
   }
 
+  const showMessage = (message:string):void => {
+    alert(message);
+  }
+
 </script>
 
 <template>
@@ -354,7 +358,7 @@
       <button class="level__toggle-word level__toggle-word--prev" @click="prevWord()">
         <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" x="0" y="0" viewBox="0 0 492.004 492.004" style="enable-background:new 0 0 512 512" xml:space="preserve"><g><path d="M382.678 226.804 163.73 7.86C158.666 2.792 151.906 0 144.698 0s-13.968 2.792-19.032 7.86l-16.124 16.12c-10.492 10.504-10.492 27.576 0 38.064L293.398 245.9l-184.06 184.06c-5.064 5.068-7.86 11.824-7.86 19.028 0 7.212 2.796 13.968 7.86 19.04l16.124 16.116c5.068 5.068 11.824 7.86 19.032 7.86s13.968-2.792 19.032-7.86L382.678 265c5.076-5.084 7.864-11.872 7.848-19.088.016-7.244-2.772-14.028-7.848-19.108z" fill="#0275eb" opacity="1" data-original="#0275eb"></path></g></svg>
       </button>
-      <p class="level__question" :class="{'level__question--space': i === longestQuestionWordIndex, 'level__question--active': activeWord === i}" v-for="(word, i) in level.words">{{ word.question }}</p>
+      <p class="level__question" :class="{'level__question--space': i === longestQuestionWordIndex, 'level__question--active': activeWord === i}" v-for="(word, i) in level.words" :title="word.question" @click="showMessage(word.question)">{{ word.question }}</p>
       <button class="level__toggle-word level__toggle-word--next" @click="nextWord()">
         <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" x="0" y="0" viewBox="0 0 492.004 492.004" style="enable-background:new 0 0 512 512" xml:space="preserve"><g><path d="M382.678 226.804 163.73 7.86C158.666 2.792 151.906 0 144.698 0s-13.968 2.792-19.032 7.86l-16.124 16.12c-10.492 10.504-10.492 27.576 0 38.064L293.398 245.9l-184.06 184.06c-5.064 5.068-7.86 11.824-7.86 19.028 0 7.212 2.796 13.968 7.86 19.04l16.124 16.116c5.068 5.068 11.824 7.86 19.032 7.86s13.968-2.792 19.032-7.86L382.678 265c5.076-5.084 7.864-11.872 7.848-19.088.016-7.244-2.772-14.028-7.848-19.108z" fill="#0275eb" opacity="1" data-original="#0275eb"></path></g></svg>
       </button>
@@ -369,10 +373,11 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    max-height: 100svh;
 
     &__header {
       background-color: #000;
-      padding: 15px 15px;
+      padding: 10px 15px;
       display: flex;
       align-items: center;
     }
@@ -407,23 +412,17 @@
     }
 
     &__main {
-      padding: 20px 20px;
-      flex-grow: 1;
-    }
-
-    &__input {
-      color: #fff;
-      font-size: 1px;
-      outline: none;
-      border: none;
-      position: absolute;
-      box-shadow: none;
-      opacity: 0;
+      flex-grow: 3;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     &__field {
-      width: 100%;
-      height: auto;
+      width: calc(100% - 20px);
+      height: calc(100% - 20px);
+      position: absolute;
     }
 
     &__questions {
@@ -435,6 +434,7 @@
       align-items: center;
       justify-content: center;
       visibility: hidden;
+      height: 58px;
 
       &--visible {
         visibility: visible;
@@ -450,8 +450,9 @@
       font-size: 0.9em;
       color: #fff;
       max-height: 100%;
-      overflow: hidden;
+      overflow: auto;
       text-overflow: ellipsis;
+      scrollbar-width: none;
 
       &--space {
         position: relative;
@@ -459,6 +460,11 @@
 
       &--active {
         opacity: 1;
+        z-index: 10;
+      }
+
+      &::-webkit-scrollbar {
+        width: 0;
       }
     }
 
@@ -484,8 +490,8 @@
 
     &__keyboard {
       flex-grow: 1;
-      min-height: 180px;
-      max-height: 210px;
+      min-height: 150px;
+      max-height: 190px;
     }
   }
 

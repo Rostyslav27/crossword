@@ -13,7 +13,7 @@
 
 <template>
   <div class="levels-list">
-    <RouterLink class="levels-list__item" v-for="level in levelList" :key="level.id" :to="'level/' + level.id">
+    <RouterLink class="levels-list__item" v-for="level in levelList" :key="level.id" :to="'/' + level.id">
       <LevelItem  :level="level" />
     </RouterLink>
   </div>

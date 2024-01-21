@@ -16,7 +16,7 @@
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    background-color: #bdbdbd;
+    background-color: #000;
     max-height: 100vh;
     overflow: hidden;
     font-family: 'Arial';

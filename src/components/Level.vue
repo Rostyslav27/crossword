@@ -1,6 +1,7 @@
 <script lang="ts" setup>
   import { type ILevel, type IUserAnswers } from './../types';
   import { ref, computed, nextTick } from 'vue';
+  import Keyboard from './Keyboard.vue';
 
   interface ICell {
     id: string,
@@ -132,7 +133,6 @@
 
   const activeCell = ref<string>('');
   const activeWord = ref<number>(-1);
-  const activeCellValue = ref<string>('-');
   const activeCellInput = ref<HTMLInputElement | null>(null);
 
   const activateCell = (cellId:string):void =>  {
@@ -210,17 +210,21 @@
     }
   };
 
-  const handleActiveCellInput = () => {
+  const handleKeyboardInput = (value:string) => {
     if (activeCell.value && cells.value[activeCell.value]) {
-      if (activeCellValue.value.length && activeCellValue.value != '-') {
-        activeCellValue.value = activeCellValue.value[activeCellValue.value.length - 1];
-        enterValue(activeCellValue.value[activeCellValue.value.length - 1].toUpperCase());
-      } else {
-        activeCellValue.value = '-';
-        enterValue('');
-      }
+      enterValue(value);
     }
   };
+
+  document.addEventListener('keydown', (e:KeyboardEvent) => {
+    if (activeCell.value && cells.value[activeCell.value]) {
+      if (e.key === 'Backspace') {
+        enterValue('');
+      } else {
+        enterValue(e.key[e.key.length - 1].toUpperCase());
+      }
+    }
+  });
 
   const nextCell = ():void => {
     if (wodrCellsMap.value[activeWord.value]) {
@@ -249,8 +253,64 @@
     }
   };
 
+  const nextWord = ():void => {
+    if (activeWord.value > -1) {
+      let nextWordIndex:number = activeWord.value + 1;
+
+      if (!wodrCellsMap.value[nextWordIndex]) {
+        nextWordIndex = 0;
+      }
+
+      const incNextWordIndex = ():void => {
+        if (wodrCompleteMap.value[nextWordIndex]) {
+          nextWordIndex++;
+
+          if (!wodrCellsMap.value[nextWordIndex]) {
+            nextWordIndex = 0;
+          }
+
+          incNextWordIndex();
+        }
+      };
+
+      if (wodrCompleteMap.value.some(word => !word)) {
+        incNextWordIndex();
+      }
+
+      activateCell(wodrCellsMap.value[nextWordIndex][0].id);
+    }
+  };
+
+  const prevWord = ():void => {
+    if (activeWord.value > -1) {
+      let nextWordIndex:number = activeWord.value - 1;
+
+      if (!wodrCellsMap.value[nextWordIndex]) {
+        nextWordIndex = wodrCellsMap.value.length - 1;
+      }
+
+      const decNextWordIndex = ():void => {
+        if (wodrCompleteMap.value[nextWordIndex]) {
+          nextWordIndex--;
+
+          if (!wodrCellsMap.value[nextWordIndex]) {
+            nextWordIndex = wodrCellsMap.value.length - 1;
+          }
+
+          decNextWordIndex();
+        }
+      };
+
+      if (wodrCompleteMap.value.some(word => !word)) {
+        decNextWordIndex();
+      }
+
+      activateCell(wodrCellsMap.value[nextWordIndex][0].id);
+    }
+  };
+
   const getCellColor = (cell:ICell):string => {
-    if ((cell.horizontalWord && wodrCompleteMap.value[cell.horizontalWord.wordIndex]) || (cell.verticalWord && wodrCompleteMap.value[cell.verticalWord.wordIndex])) {
+    if (cellCompleteMap.value[cell.id]) {
       return '#fff9c3';
     } else if (activeCell.value === cell.id) {
       return '#55ff82';
@@ -261,18 +321,25 @@
     }
   };
 
+  const useHint = () => {
+    if (activeCell.value && cells.value[activeCell.value]) {
+      if (confirm('Використати підказку?')) {
+        enterValue(cells.value[activeCell.value].correctValue);
+      }
+    }
+  }
+
 </script>
 
 <template>
   <div class="level">
     <div class="level__header">
       <RouterLink class="level__back" to="/">Назад</RouterLink>
+      <button v-if="activeCell && !cellCompleteMap[activeCell]" class="level__hint" @click="useHint">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" x="0" y="0" viewBox="0 0 24 24" style="enable-background:new 0 0 512 512" xml:space="preserve"><g><path fill="#ffc107" d="m23.363 8.584-7.378-1.127L12.678.413c-.247-.526-1.11-.526-1.357 0L8.015 7.457.637 8.584a.75.75 0 0 0-.423 1.265l5.36 5.494-1.267 7.767a.75.75 0 0 0 1.103.777L12 20.245l6.59 3.643a.75.75 0 0 0 1.103-.777l-1.267-7.767 5.36-5.494a.75.75 0 0 0-.423-1.266z" opacity="1" data-original="#ffc107"></path></g></svg>
+      </button>
     </div>
-    <input class="level__input" type="text" v-model="activeCellValue" @input="handleActiveCellInput" ref="activeCellInput" >
     <div class="level__main">
-      <div class="level__questions">
-        <p class="level__question" :class="{'level__question--space': i === longestQuestionWordIndex, 'level__question--active': activeWord === i}" v-for="(word, i) in level.words">{{ word.question }}</p>
-      </div>
       <svg class="level__field" :viewBox="`-${strokeWidth} -${strokeWidth} ${fieldWidth + activeStrokeWidth * 2} ${fieldHeight + activeStrokeWidth * 2}`">
         <rect :x="'-' + strokeWidth" :y="'-' + strokeWidth" :width="fieldWidth + activeStrokeWidth * 2" :height="fieldHeight + activeStrokeWidth * 2" fill="#bdbdbd"  @click="activateCell('')" />
         <g v-for="cell in cells" :transform="`translate(${cell.x} ${cell.y})`" @click="activateCell(cell.id)">
@@ -283,16 +350,31 @@
         <rect v-if="cells[activeCell]" :x="cells[activeCell].x" :y="cells[activeCell].y" :width="cellWidth" :height="cellWidth" :stroke-width="activeStrokeWidth" stroke="#000" fill="none" @click="activateCell(activeCell)" />
       </svg>
     </div>
+    <div class="level__questions" :class="{'level__questions--visible': cells[activeCell]}">
+      <button class="level__toggle-word level__toggle-word--prev" @click="prevWord()">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" x="0" y="0" viewBox="0 0 492.004 492.004" style="enable-background:new 0 0 512 512" xml:space="preserve"><g><path d="M382.678 226.804 163.73 7.86C158.666 2.792 151.906 0 144.698 0s-13.968 2.792-19.032 7.86l-16.124 16.12c-10.492 10.504-10.492 27.576 0 38.064L293.398 245.9l-184.06 184.06c-5.064 5.068-7.86 11.824-7.86 19.028 0 7.212 2.796 13.968 7.86 19.04l16.124 16.116c5.068 5.068 11.824 7.86 19.032 7.86s13.968-2.792 19.032-7.86L382.678 265c5.076-5.084 7.864-11.872 7.848-19.088.016-7.244-2.772-14.028-7.848-19.108z" fill="#0275eb" opacity="1" data-original="#0275eb"></path></g></svg>
+      </button>
+      <p class="level__question" :class="{'level__question--space': i === longestQuestionWordIndex, 'level__question--active': activeWord === i}" v-for="(word, i) in level.words">{{ word.question }}</p>
+      <button class="level__toggle-word level__toggle-word--next" @click="nextWord()">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" x="0" y="0" viewBox="0 0 492.004 492.004" style="enable-background:new 0 0 512 512" xml:space="preserve"><g><path d="M382.678 226.804 163.73 7.86C158.666 2.792 151.906 0 144.698 0s-13.968 2.792-19.032 7.86l-16.124 16.12c-10.492 10.504-10.492 27.576 0 38.064L293.398 245.9l-184.06 184.06c-5.064 5.068-7.86 11.824-7.86 19.028 0 7.212 2.796 13.968 7.86 19.04l16.124 16.116c5.068 5.068 11.824 7.86 19.032 7.86s13.968-2.792 19.032-7.86L382.678 265c5.076-5.084 7.864-11.872 7.848-19.088.016-7.244-2.772-14.028-7.848-19.108z" fill="#0275eb" opacity="1" data-original="#0275eb"></path></g></svg>
+      </button>
+    </div>
+    <Keyboard class="level__keyboard" @enter="handleKeyboardInput" />
   </div>
 </template>
 
 <style lang="scss" scoped>
 
   .level {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 
     &__header {
-      background-color: #000000;
-      padding: 15px 5px;
+      background-color: #000;
+      padding: 15px 15px;
+      display: flex;
+      align-items: center;
     }
 
     &__back {
@@ -305,6 +387,28 @@
       padding: 5px;
       display: block;
       text-decoration: none;
+    }
+
+    &__hint {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      margin-left: auto;
+      border: none;
+      border-radius: 0;
+      background-color: transparent;
+      box-shadow: none;
+      outline: none;
+
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    &__main {
+      padding: 20px 20px;
+      flex-grow: 1;
     }
 
     &__input {
@@ -324,17 +428,30 @@
 
     &__questions {
       position: relative;
-      margin-bottom: 10px;
+      margin-top: auto;
+      background-color: #333;
+      padding: 5px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      visibility: hidden;
+
+      &--visible {
+        visibility: visible;
+      }
     }
 
     &__question {
       position: absolute;
       opacity: 0;
-      top: 0;
-      left: 0;
-      width: 100%;
+      width: calc(100% - 70px);
       text-align: center;
-      margin: 5px 0;
+      margin: 0 auto;
+      font-size: 0.9em;
+      color: #fff;
+      max-height: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
 
       &--space {
         position: relative;
@@ -343,6 +460,32 @@
       &--active {
         opacity: 1;
       }
+    }
+
+    &__toggle-word {
+      width: 24px;
+      height: 100%;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background-color: transparent;
+      box-shadow: none;
+      outline: none;
+
+      &--prev {
+        transform: rotateY(180deg);
+      }
+
+      svg {
+        width: 100%;
+        height: auto;
+      }
+    }
+
+    &__keyboard {
+      flex-grow: 1;
+      min-height: 180px;
+      max-height: 210px;
     }
   }
 

@@ -7,7 +7,7 @@ const routes:RouteRecordRaw[] = [
     component: () => import('../pages/selectLevel.page.vue'),
   },
   {
-    path: '/level/:levelid',
+    path: '/:levelid',
     name: 'level',
     component: () => import('../pages/level.page.vue'),
   }

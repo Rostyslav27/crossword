@@ -28,6 +28,11 @@
   </div>
 </template>
 
-<style lang="scss">
-
+<style lang="scss" scoped>
+  
+  .level-page {
+    background-color: #bdbdbd;
+    height: 100vh;
+    height: 100svh;
+  }
 </style>

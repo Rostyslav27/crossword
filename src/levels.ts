@@ -1,0 +1,90 @@
+import { ILevel } from "./types"
+
+export const levels:ILevel[] = [
+  {
+    id: 1,
+    name: 'test',
+    words: [
+      {
+        word: 'Саар',
+        question: "Ріка у Франції і Німеччині, права притока ріки Мозель",
+        xStart: 0,
+        yStart: 0,
+        vertical: false,
+        index: '1',
+      },
+      {
+        word: 'Стометрівка',
+        question: "Дистанція сто метрів у спортивних змаганнях з бігу, плавання тощо",
+        xStart: 0,
+        yStart: 0,
+        vertical: true,
+        index: '1',
+      },
+      {
+        word: 'Ар',
+        question: "Міра земельної площі",
+        xStart: 1,
+        yStart: 0,
+        vertical: true,
+        index: '2',
+      },
+      {
+        word: 'Аав',
+        question: "... Евальд (естонський композитор)",
+        xStart: 2,
+        yStart: 0,
+        vertical: true,
+        index: '3',
+      },
+      {
+        word: 'Рвач',
+        question: "Той, хто намагається одержати за свою працю більше, ніж вона варта",
+        xStart: 3,
+        yStart: 0,
+        vertical: true,
+        index: '4',
+      },
+      {
+        word: 'Троп',
+        question: "Узагальнююча назва літературно-музичних жанрів в середньовічній західній Європі, в основі яких лежить поетична або музично-поетична обробка створених раніше григоріанських розспівів.",
+        xStart: 5,
+        yStart: 0,
+        vertical: true,
+        index: '5',
+      },
+      {
+        word: 'Тама',
+        question: "Річка в регіоні Канто, в Японії.",
+        xStart: 5,
+        yStart: 0,
+        vertical: false,
+        index: '5',
+      },
+      {
+        word: 'Атн',
+        question: "Академія технологічних наук",
+        xStart: 6,
+        yStart: 0,
+        vertical: true,
+        index: '6',
+      },
+      {
+        word: 'Ми',
+        question: "Я і ти",
+        xStart: 7,
+        yStart: 0,
+        vertical: true,
+        index: '7',
+      },
+      {
+        word: 'Анкілостома',
+        question: "Збудник анкілостомозу",
+        xStart: 8,
+        yStart: 0,
+        vertical: true,
+        index: '8',
+      },
+    ],
+  }
+];

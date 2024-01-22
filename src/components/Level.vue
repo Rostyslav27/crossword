@@ -452,8 +452,8 @@
     }
 
     &__field {
-      width: calc(100% - 20px);
-      height: calc(100% - 20px);
+      width: calc(100% - 15px);
+      height: calc(100% - 15px);
       position: absolute;
     }
 
@@ -461,12 +461,12 @@
       position: relative;
       margin-top: auto;
       background-color: #333;
-      padding: 5px 0;
+      padding: 2px 0;
       display: flex;
       align-items: center;
       justify-content: center;
       visibility: hidden;
-      height: 58px;
+      height: 75px;
 
       &--visible {
         visibility: visible;
@@ -476,7 +476,7 @@
     &__question {
       position: absolute;
       opacity: 0;
-      width: calc(100% - 70px);
+      width: calc(100% - 60px);
       text-align: center;
       margin: 0 auto;
       font-size: 0.9em;
@@ -523,7 +523,7 @@
     &__keyboard {
       flex-grow: 1;
       min-height: 150px;
-      max-height: 190px;
+      max-height: 170px;
     }
   }
 

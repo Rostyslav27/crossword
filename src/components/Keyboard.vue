@@ -39,7 +39,7 @@
       border-radius: 4px;
       border: none;
       padding: 0;
-      font-size: 1em;
+      font-size: 1.1em;
       background-color: #6a7077;
       color: #fff;
       touch-action: manipulation;

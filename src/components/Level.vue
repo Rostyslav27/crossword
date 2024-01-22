@@ -371,7 +371,7 @@
         <g v-for="cell in cells" :transform="`translate(${cell.x} ${cell.y})`" @click="activateCell(cell.id)">
           <rect x="0" y="0" :width="cellWidth" :height="cellWidth" :stroke-width="strokeWidth" stroke="#000" :fill="getCellColor(cell)" />
           <text v-if="cell.currentValue" :x="textOffset" :y="textOffset + activeStrokeWidth" :font-size="textFontSize" dominant-baseline="middle" text-anchor="middle" font-family="Arial">{{ cell.currentValue }}</text>
-          <text v-if="cell.wordIndex" :x="activeStrokeWidth" :y="activeStrokeWidth + 1" :font-size="indexFontSize" dominant-baseline="hanging" text-anchor="start" font-family="Arial">{{ cell.wordIndex }}</text>
+          <text v-if="cell.wordIndex" :x="activeStrokeWidth" :y="activeStrokeWidth" :font-size="indexFontSize" dominant-baseline="hanging" text-anchor="start" font-family="Arial">{{ cell.wordIndex }}</text>
         </g>
         <rect v-if="cells[activeCell]" :x="cells[activeCell].x" :y="cells[activeCell].y" :width="cellWidth" :height="cellWidth" :stroke-width="activeStrokeWidth" stroke="#000" fill="none" @click="activateCell(activeCell)" />
       </svg>

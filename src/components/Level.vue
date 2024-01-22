@@ -400,7 +400,7 @@
 
     &__header {
       background-color: #000;
-      padding: 10px 15px;
+      padding: 6px 15px;
       display: flex;
       align-items: center;
     }
@@ -466,7 +466,7 @@
       align-items: center;
       justify-content: center;
       visibility: hidden;
-      height: 75px;
+      height: 70px;
 
       &--visible {
         visibility: visible;
@@ -479,7 +479,7 @@
       width: calc(100% - 60px);
       text-align: center;
       margin: 0 auto;
-      font-size: 0.9em;
+      font-size: 0.97em;
       color: #fff;
       max-height: 100%;
       overflow: auto;
@@ -523,7 +523,7 @@
     &__keyboard {
       flex-grow: 1;
       min-height: 150px;
-      max-height: 170px;
+      max-height: 165px;
     }
   }
 

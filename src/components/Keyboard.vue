@@ -30,6 +30,7 @@
     grid-template-columns: repeat(11, 1fr);
     grid-gap: 3px;
     touch-action: manipulation;
+    user-select: none;
 
     &__key {
       display: flex;

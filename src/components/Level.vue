@@ -28,8 +28,8 @@
   const strokeWidth:number = cellWidth / 30;
   const activeStrokeWidth:number = strokeWidth * 1.4;
   const textOffset: number = cellWidth / 2;
-  const textFontSize:number = cellWidth * 0.65;
-  const indexFontSize:number = cellWidth * 0.3;
+  const textFontSize:number = cellWidth * 0.62;
+  const indexFontSize:number = cellWidth * 0.27;
   const fieldWidth = ref<number>(cellWidth * Math.max(...props.level.words.map(word => word.vertical ? word.xStart + 1 : word.word.length + word.xStart)) || cellWidth);
   const fieldHeight = ref<number>(cellWidth * Math.max(...props.level.words.map(word => !word.vertical ? word.yStart + 1 : word.word.length + word.yStart)) || cellWidth);
   const userAnswers = ref<IUserAnswers>({ completed: 0, answers: {} });
@@ -184,9 +184,9 @@
     activeCell.value = cellId;
   };
 
-  const enterValue = (value:string) => {
-
+  const enterValue = (value:string, stop:boolean = false) => {
     if (!cellCompleteMap.value[activeCell.value]) {
+      const prevValue:string = cells.value[activeCell.value].currentValue;
       cells.value[activeCell.value].currentValue = value;
       
       userAnswers.value.answers[activeCell.value] = value;
@@ -194,6 +194,19 @@
 
       checkWords();
 
+      if (!value) {
+        if (!prevValue && !stop) {
+          nextTick().then(() => {
+            prevCell();
+            enterValue('', true);
+          });
+        }
+      } else {
+        nextTick().then(() => {
+          nextCell();
+        });
+      }
+    } else {
       if (!value) {
         nextTick().then(() => {
           prevCell();
@@ -203,10 +216,6 @@
           nextCell();
         });
       }
-    } else {
-      nextTick().then(() => {
-        nextCell();
-      });
     }
   };
 
@@ -220,33 +229,40 @@
     if (activeCell.value && cells.value[activeCell.value]) {
       if (e.key === 'Backspace') {
         enterValue('');
-      } else {
+      } else if (e.key.length === 1) {
         enterValue(e.key[e.key.length - 1].toUpperCase());
       }
     }
   });
 
   const nextCell = ():void => {
-    if (wodrCellsMap.value[activeWord.value]) {
+    if (wodrCellsMap.value[activeWord.value] && wodrCompleteMap.value.some(word => !word)) {
       [cells.value[activeCell.value].horizontalWord, cells.value[activeCell.value].verticalWord].forEach(wordRef => {
         if (wordRef && wordRef.wordIndex === activeWord.value) {
-          if (wodrCellsMap.value[activeWord.value][wordRef.letterIndex + 1]) {
+          if (wodrCompleteMap.value[activeWord.value]) {
+            nextWord();
+          } else if (wodrCellsMap.value[activeWord.value][wordRef.letterIndex + 1]) {
             activateCell(wodrCellsMap.value[activeWord.value][wordRef.letterIndex + 1].id);
+
+            if (cellCompleteMap.value[activeCell.value]) {
+              nextCell();
+            }
           } 
-          // else if (wodrCellsMap.value[activeWord.value + 1] && wodrCellsMap.value[activeWord.value + 1][0]) {
-          //   activateCell(wodrCellsMap.value[activeWord.value + 1][0].id);
-          // }
         }
       });
     }
   };
 
   const prevCell = ():void => {
-    if (wodrCellsMap.value[activeWord.value]) {
+    if (wodrCellsMap.value[activeWord.value] && wodrCompleteMap.value.some(word => !word)) {
       [cells.value[activeCell.value].horizontalWord, cells.value[activeCell.value].verticalWord].forEach(wordRef => {
         if (wordRef && wordRef.wordIndex === activeWord.value) {
           if (wodrCellsMap.value[activeWord.value][wordRef.letterIndex - 1]) {
             activateCell(wodrCellsMap.value[activeWord.value][wordRef.letterIndex - 1].id);
+
+            if (cellCompleteMap.value[activeCell.value]) {
+              prevCell();
+            }
           }
         }
       });
@@ -255,20 +271,16 @@
 
   const nextWord = ():void => {
     if (activeWord.value > -1) {
-      let nextWordIndex:number = activeWord.value + 1;
-
-      if (!wodrCellsMap.value[nextWordIndex]) {
-        nextWordIndex = 0;
-      }
+      let nextWordIndex:number = activeWord.value;
 
       const incNextWordIndex = ():void => {
+        nextWordIndex++;
+
+        if (!wodrCellsMap.value[nextWordIndex]) {
+          nextWordIndex = 0;
+        }
+
         if (wodrCompleteMap.value[nextWordIndex]) {
-          nextWordIndex++;
-
-          if (!wodrCellsMap.value[nextWordIndex]) {
-            nextWordIndex = 0;
-          }
-
           incNextWordIndex();
         }
       };
@@ -277,26 +289,28 @@
         incNextWordIndex();
       }
 
-      activateCell(wodrCellsMap.value[nextWordIndex][0].id);
+      const letterToActivateIndex:number = wodrCellsMap.value[nextWordIndex].findIndex(letter => !cellCompleteMap.value[letter.id]);
+
+      if (letterToActivateIndex > -1) {
+        activeCell.value = wodrCellsMap.value[nextWordIndex][letterToActivateIndex].id;
+        activeWord.value = nextWordIndex;
+      }
+      
     }
   };
 
   const prevWord = ():void => {
     if (activeWord.value > -1) {
-      let nextWordIndex:number = activeWord.value - 1;
-
-      if (!wodrCellsMap.value[nextWordIndex]) {
-        nextWordIndex = wodrCellsMap.value.length - 1;
-      }
+      let nextWordIndex:number = activeWord.value;
 
       const decNextWordIndex = ():void => {
+        nextWordIndex--;
+
+        if (!wodrCellsMap.value[nextWordIndex]) {
+          nextWordIndex = wodrCellsMap.value.length - 1;
+        }
+
         if (wodrCompleteMap.value[nextWordIndex]) {
-          nextWordIndex--;
-
-          if (!wodrCellsMap.value[nextWordIndex]) {
-            nextWordIndex = wodrCellsMap.value.length - 1;
-          }
-
           decNextWordIndex();
         }
       };
@@ -305,7 +319,12 @@
         decNextWordIndex();
       }
 
-      activateCell(wodrCellsMap.value[nextWordIndex][0].id);
+      const letterToActivateIndex:number = wodrCellsMap.value[nextWordIndex].findIndex(letter => !cellCompleteMap.value[letter.id]);
+
+      if (letterToActivateIndex > -1) {
+        activeCell.value = wodrCellsMap.value[nextWordIndex][letterToActivateIndex].id;
+        activeWord.value = nextWordIndex;
+      }
     }
   };
 
@@ -331,14 +350,17 @@
 
   const showMessage = (message:string):void => {
     alert(message);
-  }
+  };
 
 </script>
 
 <template>
   <div class="level">
     <div class="level__header">
-      <RouterLink class="level__back" to="/">Назад</RouterLink>
+      <RouterLink class="level__back" to="/">
+        <svg class="level__back-arrow" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" x="0" y="0" viewBox="0 0 492.004 492.004" style="enable-background:new 0 0 512 512" xml:space="preserve"><g><path d="M382.678 226.804 163.73 7.86C158.666 2.792 151.906 0 144.698 0s-13.968 2.792-19.032 7.86l-16.124 16.12c-10.492 10.504-10.492 27.576 0 38.064L293.398 245.9l-184.06 184.06c-5.064 5.068-7.86 11.824-7.86 19.028 0 7.212 2.796 13.968 7.86 19.04l16.124 16.116c5.068 5.068 11.824 7.86 19.032 7.86s13.968-2.792 19.032-7.86L382.678 265c5.076-5.084 7.864-11.872 7.848-19.088.016-7.244-2.772-14.028-7.848-19.108z" fill="#0275eb" opacity="1" data-original="#0275eb"></path></g></svg>
+        Назад
+      </RouterLink>
       <button v-if="activeCell && !cellCompleteMap[activeCell]" class="level__hint" @click="useHint">
         <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" x="0" y="0" viewBox="0 0 24 24" style="enable-background:new 0 0 512 512" xml:space="preserve"><g><path fill="#ffc107" d="m23.363 8.584-7.378-1.127L12.678.413c-.247-.526-1.11-.526-1.357 0L8.015 7.457.637 8.584a.75.75 0 0 0-.423 1.265l5.36 5.494-1.267 7.767a.75.75 0 0 0 1.103.777L12 20.245l6.59 3.643a.75.75 0 0 0 1.103-.777l-1.267-7.767 5.36-5.494a.75.75 0 0 0-.423-1.266z" opacity="1" data-original="#ffc107"></path></g></svg>
       </button>
@@ -348,8 +370,8 @@
         <rect :x="'-' + strokeWidth" :y="'-' + strokeWidth" :width="fieldWidth + activeStrokeWidth * 2" :height="fieldHeight + activeStrokeWidth * 2" fill="#bdbdbd"  @click="activateCell('')" />
         <g v-for="cell in cells" :transform="`translate(${cell.x} ${cell.y})`" @click="activateCell(cell.id)">
           <rect x="0" y="0" :width="cellWidth" :height="cellWidth" :stroke-width="strokeWidth" stroke="#000" :fill="getCellColor(cell)" />
-          <text v-if="cell.currentValue" :x="textOffset" :y="textOffset + strokeWidth" :font-size="textFontSize" dominant-baseline="middle" text-anchor="middle" font-family="Arial">{{ cell.currentValue }}</text>
-          <text v-if="cell.wordIndex" :x="activeStrokeWidth" :y="activeStrokeWidth" :font-size="indexFontSize" dominant-baseline="hanging" text-anchor="start" font-family="Arial">{{ cell.wordIndex }}</text>
+          <text v-if="cell.currentValue" :x="textOffset" :y="textOffset + activeStrokeWidth" :font-size="textFontSize" dominant-baseline="middle" text-anchor="middle" font-family="Arial">{{ cell.currentValue }}</text>
+          <text v-if="cell.wordIndex" :x="activeStrokeWidth" :y="activeStrokeWidth + 1" :font-size="indexFontSize" dominant-baseline="hanging" text-anchor="start" font-family="Arial">{{ cell.wordIndex }}</text>
         </g>
         <rect v-if="cells[activeCell]" :x="cells[activeCell].x" :y="cells[activeCell].y" :width="cellWidth" :height="cellWidth" :stroke-width="activeStrokeWidth" stroke="#000" fill="none" @click="activateCell(activeCell)" />
       </svg>
@@ -393,6 +415,15 @@
       padding: 5px;
       display: block;
       text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    &__back-arrow {
+      width: 15px;
+      height: auto;
+      transform: rotateY(180deg);
+      margin-right: 8px;
     }
 
     &__hint {

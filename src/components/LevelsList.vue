@@ -24,7 +24,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     grid-gap: 20px;
-    padding: 10px;
+    padding: 30px 10px 10px;
     height: 100%;
 
     &__item {
